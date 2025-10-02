@@ -1,0 +1,175 @@
+<div class="mb-3 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+  <h2 class="mb-0">Dashboard</h2>
+  <div class="text-muted">Updated: <%= new Date().toLocaleString() %></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-uppercase text-muted">Total Posts</div>
+        <div class="display-6"><%= totals.totalPosts %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-uppercase text-muted">Pending</div>
+        <div class="display-6 text-warning"><%= totals.pendingPosts %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-uppercase text-muted">Posted</div>
+        <div class="display-6 text-success"><%= totals.postedPosts %></div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="small text-uppercase text-muted">Accounts</div>
+        <div class="display-6"><%= totals.totalAccounts %></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-12 col-lg-8">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Cron & Upload Summary</strong>
+        <a class="btn btn-sm btn-outline-primary" href="/admin/logs">View Detailed Logs</a>
+      </div>
+      <div class="card-body">
+        <% if (logSummary) { %>
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <div class="small text-uppercase text-muted">Cron Runs</div>
+              <div class="h3 mb-0"><%= logSummary.totalCronRuns %></div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-uppercase text-muted">Processed (IMG)</div>
+              <div class="h3 mb-0"><%= logSummary.processed.images %></div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-uppercase text-muted">Processed (VID)</div>
+              <div class="h3 mb-0"><%= logSummary.processed.videos %></div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-uppercase text-muted">Success</div>
+              <div class="h3 mb-0 text-success"><%= logSummary.successCount %></div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="small text-uppercase text-muted">Failed</div>
+              <div class="h3 mb-0 text-danger"><%= logSummary.failedCount %></div>
+            </div>
+            <div class="col-12 col-md-9">
+              <div class="small text-uppercase text-muted">Recent Activity</div>
+              <div class="d-flex flex-column flex-md-row gap-2">
+                <div>Last Cron Start: <strong><%= logSummary.recentActivity.lastCronStartedAt ? new Date(logSummary.recentActivity.lastCronStartedAt).toLocaleString() : '-' %></strong></div>
+                <div>Last Cron End: <strong><%= logSummary.recentActivity.lastCronEndedAt ? new Date(logSummary.recentActivity.lastCronEndedAt).toLocaleString() : '-' %></strong></div>
+                <div>Last Upload: <strong><%= logSummary.recentActivity.lastUploadAt ? new Date(logSummary.recentActivity.lastUploadAt).toLocaleString() : '-' %></strong></div>
+              </div>
+            </div>
+          </div>
+        <% } else { %>
+          <div class="text-muted">No log summary available</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="card h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Top Accounts by Uploads</strong>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/accounts">Accounts</a>
+      </div>
+      <div class="card-body">
+        <% if (logSummary && logSummary.uploadsPerAccount && logSummary.uploadsPerAccount.length) { %>
+          <ul class="list-group list-group-flush">
+            <% logSummary.uploadsPerAccount.forEach(row => { %>
+              <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                <span><%= row.account ? row.account.username : '-' %></span>
+                <span class="badge bg-dark"><%= row.uploads %></span>
+              </li>
+            <% }) %>
+          </ul>
+        <% } else { %>
+          <div class="text-muted">No uploads yet</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-12 col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Per-Account Statistics</strong>
+        <a class="btn btn-sm btn-outline-secondary" href="/admin/accounts">Manage Accounts</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Account</th>
+                <th>Total</th>
+                <th>Pending</th>
+                <th>Posted</th>
+                <th>Last Post Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (perAccount && perAccount.length) { %>
+                <% perAccount.forEach(row => { %>
+                  <tr>
+                    <td><%= row.account ? row.account.username : '-' %></td>
+                    <td><span class="badge bg-dark"><%= row.total %></span></td>
+                    <td><span class="badge bg-warning text-dark"><%= row.pending %></span></td>
+                    <td><span class="badge bg-success"><%= row.posted %></span></td>
+                    <td><%= row.lastCreatedAt ? new Date(row.lastCreatedAt).toLocaleString() : '-' %></td>
+                  </tr>
+                <% }) %>
+              <% } else { %>
+                <tr><td colspan="5" class="text-center">No data</td></tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-lg-5">
+    <div class="card h-100">
+      <div class="card-header"><strong>Recent Posts</strong></div>
+      <div class="card-body">
+        <% if (recentPosts && recentPosts.length) { %>
+          <div class="list-group list-group-flush">
+            <% recentPosts.forEach(p => { %>
+              <div class="list-group-item px-0 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                  <div class="fw-semibold text-truncate" style="max-width: 70%"><%= p.name %></div>
+                  <span class="badge <%= p.status === 'posted' ? 'bg-success' : 'bg-secondary' %>"><%= p.status %></span>
+                </div>
+                <div class="small text-muted d-flex flex-wrap gap-2">
+                  <span class="text-uppercase badge bg-info text-dark"><%= p.type %></span>
+                  <span>@<%= p.account ? p.account.username : '-' %></span>
+                  <span><%= new Date(p.createdAt).toLocaleString() %></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="text-muted">No recent posts</div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>

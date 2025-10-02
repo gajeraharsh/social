@@ -1,0 +1,38 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Accounts</h2>
+  <a class="btn btn-primary" href="/admin/accounts/new">Add Account</a>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>IG User ID</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (accounts && accounts.length) { %>
+      <% accounts.forEach(a => { %>
+        <tr>
+          <td><%= a.username %></td>
+          <td><%= a.ig_user_id || '-' %></td>
+          <td><%= new Date(a.createdAt).toLocaleString() %></td>
+          <td>
+            <div class="d-grid d-sm-flex gap-2">
+              <a class="btn btn-sm btn-outline-primary" href="/admin/accounts/<%= a._id %>/edit">Edit</a>
+              <form method="POST" action="/admin/accounts/<%= a._id %>?_method=DELETE" class="d-inline" onsubmit="return confirmDelete()">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr><td colspan="4" class="text-center">No accounts found</td></tr>
+    <% } %>
+  </tbody>
+</table>
+</div>

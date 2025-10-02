@@ -1,0 +1,62 @@
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Posts</h2>
+  <a class="btn btn-primary" href="/admin/posts/new">Add Post</a>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th style="min-width: 180px;">URL</th>
+      <th>Account</th>
+      <th>Status</th>
+      <th>Created</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% if (posts && posts.length) { %>
+      <% posts.forEach(p => { %>
+        <tr>
+          <td><%= p.name %></td>
+          <td><span class="badge bg-info text-dark text-uppercase"><%= p.type %></span></td>
+          <td class="text-break"><a class="text-decoration-none" href="<%= p.url %>" target="_blank" rel="noreferrer"><span class="d-inline-block text-truncate" style="max-width: 220px;"><%= p.url %></span></a></td>
+          <td><%= p.account ? p.account.username : '-' %></td>
+          <td>
+            <span class="badge <%= p.status === 'posted' ? 'bg-success' : 'bg-secondary' %>"><%= p.status %></span>
+          </td>
+          <td><%= new Date(p.createdAt).toLocaleString() %></td>
+          <td>
+            <div class="d-grid d-sm-flex gap-2">
+              <a class="btn btn-sm btn-outline-primary" href="/admin/posts/<%= p._id %>/edit">Edit</a>
+              <form method="POST" action="/admin/posts/<%= p._id %>?_method=DELETE" class="d-inline" onsubmit="return confirmDelete()">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      <% }) %>
+    <% } else { %>
+      <tr><td colspan="7" class="text-center">No posts found</td></tr>
+    <% } %>
+  </tbody>
+</table>
+</div>
+
+<nav aria-label="pagination">
+  <ul class="pagination flex-wrap">
+    <% const totalPages = pagination.pages; %>
+    <% const current = pagination.page; %>
+    <li class="page-item <%= current === 1 ? 'disabled' : '' %>">
+      <a class="page-link" href="?page=<%= current - 1 %>&limit=<%= pagination.limit %>">Previous</a>
+    </li>
+    <% for (let i = 1; i <= totalPages; i++) { %>
+      <li class="page-item <%= i === current ? 'active' : '' %>"><a class="page-link" href="?page=<%= i %>&limit=<%= pagination.limit %>"><%= i %></a></li>
+    <% } %>
+    <li class="page-item <%= current === totalPages ? 'disabled' : '' %>">
+      <a class="page-link" href="?page=<%= current + 1 %>&limit=<%= pagination.limit %>">Next</a>
+    </li>
+  </ul>
+</nav>

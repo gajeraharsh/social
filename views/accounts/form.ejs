@@ -1,0 +1,42 @@
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0"><%= mode === 'edit' ? 'Edit Account' : 'Add Account' %></h2>
+    </div>
+    <% if (errors && errors.length) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %>
+            <li><%= e.message %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST" action="<%= mode === 'edit' ? ('/admin/accounts/' + account._id + '?_method=PUT') : '/admin/accounts' %>">
+          <div class="mb-3">
+            <label class="form-label">Username</label>
+            <input type="text" class="form-control" name="username" value="<%= account.username || '' %>" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Instagram User ID</label>
+            <input type="text" class="form-control" name="ig_user_id" value="<%= account.ig_user_id || '' %>">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Access Token</label>
+            <input type="text" class="form-control" name="access_token" value="<%= account.access_token || '' %>">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" value="<%= account.email || '' %>">
+          </div>
+          <div class="d-grid d-sm-flex gap-2">
+            <button type="submit" class="btn btn-success"><%= mode === 'edit' ? 'Update' : 'Save' %></button>
+            <a class="btn btn-secondary" href="/admin/accounts">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

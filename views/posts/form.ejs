@@ -1,0 +1,58 @@
+<div class="row justify-content-center">
+  <div class="col-12 col-md-10 col-lg-8 col-xl-6">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="mb-0"><%= mode === 'edit' ? 'Edit Post' : 'Add Post' %></h2>
+    </div>
+    <% if (errors && errors.length) { %>
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          <% errors.forEach(e => { %>
+            <li><%= e.message %></li>
+          <% }) %>
+        </ul>
+      </div>
+    <% } %>
+    <div class="card">
+      <div class="card-body">
+        <form method="POST" action="<%= mode === 'edit' ? ('/admin/posts/' + post._id + '?_method=PUT') : '/admin/posts' %>">
+          <div class="mb-3">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-control" name="name" value="<%= post.name || '' %>" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Type</label>
+            <select class="form-select" name="type" required>
+              <option value="">Select type</option>
+              <option value="video" <%= post.type === 'video' ? 'selected' : '' %>>Video</option>
+              <option value="image" <%= post.type === 'image' ? 'selected' : '' %>>Image</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Upload URL</label>
+            <input type="url" class="form-control" name="url" value="<%= post.url || '' %>" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Account</label>
+            <select class="form-select" name="account" required>
+              <option value="">Select account</option>
+              <% accounts.forEach(a => { %>
+                <option value="<%= a._id %>" <%= (post.account && (post.account.toString ? post.account.toString() : post.account) === a._id.toString()) ? 'selected' : '' %>><%= a.username %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Status</label>
+            <select class="form-select" name="status">
+              <option value="pending" <%= post.status === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="posted" <%= post.status === 'posted' ? 'selected' : '' %>>Posted</option>
+            </select>
+          </div>
+          <div class="d-grid d-sm-flex gap-2">
+            <button type="submit" class="btn btn-success"><%= mode === 'edit' ? 'Update' : 'Save' %></button>
+            <a class="btn btn-secondary" href="/admin/posts">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

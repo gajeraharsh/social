@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:6
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+  app:
+    build: .
+    restart: always
+    depends_on:
+      - mongo
+    env_file:
+      - .env
+    environment:
+      # Fallbacks if not provided via .env
+      - MONGO_URI=mongodb://mongo:27017/social_admin
+      - PORT=3000
+      - TZ=${TZ:-UTC}
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist uploads; safe to mount host dir
+      - ./public/uploads:/app/public/uploads
+volumes:
+  mongo-data:
