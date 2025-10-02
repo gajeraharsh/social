@@ -25,8 +25,17 @@ async function downloadWithYtDlp(sourceUrl) {
   await fs.ensureDir(tmpDir);
   const outTemplate = path.join(tmpDir, '%(id)s.%(ext)s');
 
+  // Build yt-dlp arguments with optional username/password auth
+  const args = ['-o', outTemplate];
+  const yUser = process.env.YTDLP_USERNAME && process.env.YTDLP_USERNAME.trim();
+  const yPass = process.env.YTDLP_PASSWORD && process.env.YTDLP_PASSWORD.trim();
+  if (yUser && yPass) {
+    args.push('-u', yUser, '-p', yPass);
+    console.log('[yt-dlp] Using username/password authentication');
+  }
+
   await new Promise((resolve, reject) => {
-    const proc = spawn('yt-dlp', ['-o', outTemplate, sourceUrl]);
+    const proc = spawn('yt-dlp', [...args, sourceUrl]);
     let stderr = '';
     proc.stderr.on('data', (d) => (stderr += d.toString()));
     proc.on('error', reject);
