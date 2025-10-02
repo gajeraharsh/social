@@ -20,27 +20,66 @@ function withConversionLock(fn) {
  * Download media using yt-dlp to a temp directory.
  * Returns { filePath } on success.
  */
-async function downloadWithYtDlp(sourceUrl) {
+async function downloadWithYtDlp(sourceUrl, opts = {}) {
   const tmpDir = path.join(os.tmpdir(), 'ig-media');
   await fs.ensureDir(tmpDir);
   const outTemplate = path.join(tmpDir, '%(id)s.%(ext)s');
 
-  // Build yt-dlp arguments with optional username/password auth
-  const args = ['-o', outTemplate];
-  const yUser = process.env.YTDLP_USERNAME && process.env.YTDLP_USERNAME.trim();
-  const yPass = process.env.YTDLP_PASSWORD && process.env.YTDLP_PASSWORD.trim();
-  if (yUser && yPass) {
-    args.push('-u', yUser, '-p', yPass);
-    console.log('[yt-dlp] Using username/password authentication');
+  // Build yt-dlp args with optional auth/cookies and headers
+  const args = ['-o', outTemplate, '--no-playlist'];
+
+  const envCookiesBrowser = process.env.YTDLP_COOKIES_FROM_BROWSER; // e.g. chrome, chromium, brave, firefox
+  const envCookiesFile = process.env.YTDLP_COOKIES_FILE; // path to cookies.txt / netscape format
+  const envUserAgent = process.env.YTDLP_USER_AGENT; // optional UA override
+
+  const cookiesFromBrowser = opts.cookiesFromBrowser || envCookiesBrowser;
+  const cookiesFile = opts.cookiesFile || envCookiesFile;
+  const userAgent = opts.userAgent || envUserAgent;
+  const referer = opts.referer || sourceUrl;
+
+  if (cookiesFromBrowser) {
+    args.push('--cookies-from-browser', String(cookiesFromBrowser));
+  } else if (cookiesFile) {
+    args.push('--cookies', String(cookiesFile));
   }
 
+  if (userAgent) {
+    args.push('--user-agent', String(userAgent));
+  }
+
+  // Set a reasonable retry strategy
+  args.push('--retry-sleep', '3', '--retries', '5');
+
+  // Some sites (incl. Instagram) require a referer header
+  if (referer) {
+    args.push('--referer', String(referer));
+  }
+
+  // Finally, the URL
+  args.push(sourceUrl);
+
   await new Promise((resolve, reject) => {
-    const proc = spawn('yt-dlp', [...args, sourceUrl]);
+    const proc = spawn('yt-dlp', args);
     let stderr = '';
+    let stdout = '';
     proc.stderr.on('data', (d) => (stderr += d.toString()));
+    proc.stdout.on('data', (d) => (stdout += d.toString()));
     proc.on('error', reject);
     proc.on('close', (code) => {
-      if (code !== 0) return reject(new Error(`yt-dlp exited with code ${code}: ${stderr}`));
+      if (code !== 0) {
+        const isInstagram = /instagram\.com/i.test(sourceUrl);
+        const hintParts = [];
+        if (isInstagram) {
+          hintParts.push('Instagram often requires authentication.');
+          hintParts.push('Set YTDLP_COOKIES_FROM_BROWSER (e.g. "chrome", "firefox") or YTDLP_COOKIES_FILE to a cookies.txt, or pass opts.cookiesFromBrowser/opts.cookiesFile.');
+          hintParts.push('See https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp');
+        }
+        if (!cookiesFromBrowser && !cookiesFile) {
+          hintParts.push('No cookies were provided to yt-dlp.');
+        }
+        const hint = hintParts.length ? ` Hint: ${hintParts.join(' ')}` : '';
+        return reject(new Error(`yt-dlp exited with code ${code}.${hint}\nArgs: ${JSON.stringify(args)}\nSTDERR: ${stderr || '(empty)'}\nSTDOUT: ${stdout || '(empty)'}`));
+      }
       resolve();
     });
   });
@@ -98,3 +137,4 @@ async function convertForInstagram(inputPath) {
 }
 
 module.exports.convertForInstagram = convertForInstagram;
+
