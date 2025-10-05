@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs-extra');
+const crypto = require('crypto');
 
 const UPLOADS_DIR = path.join(process.cwd(), 'public', 'uploads');
 
@@ -13,7 +14,9 @@ function getBaseUrl() {
  */
 async function storeToUploads(srcAbsPath) {
   await fs.ensureDir(UPLOADS_DIR);
-  const fileName = path.basename(srcAbsPath);
+  const origName = path.basename(srcAbsPath);
+  const uniquePrefix = `${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
+  const fileName = `${uniquePrefix}-${origName}`;
   const destAbsPath = path.join(UPLOADS_DIR, fileName);
   await fs.copy(srcAbsPath, destAbsPath);
   const url = `${getBaseUrl()}/public/uploads/${encodeURIComponent(fileName)}`;

@@ -2,6 +2,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs-extra');
 const os = require('os');
+const crypto = require('crypto');
 
 // Global single-conversion lock to ensure only one video conversion
 // runs at a time across the entire process.
@@ -22,8 +23,10 @@ function withConversionLock(fn) {
  */
 async function downloadWithYtDlp(sourceUrl, opts = {}) {
   const tmpDir = path.join(os.tmpdir(), 'ig-media');
-  await fs.ensureDir(tmpDir);
-  const outTemplate = path.join(tmpDir, '%(id)s.%(ext)s');
+  // Use a unique subdirectory per invocation to avoid concurrency conflicts
+  const sessionDir = path.join(tmpDir, `${Date.now()}-${crypto.randomBytes(6).toString('hex')}`);
+  await fs.ensureDir(sessionDir);
+  const outTemplate = path.join(sessionDir, '%(id)s.%(ext)s');
 
   // Build yt-dlp args with optional auth/cookies and headers
   const args = ['-o', outTemplate, '--no-playlist'];
@@ -84,8 +87,8 @@ async function downloadWithYtDlp(sourceUrl, opts = {}) {
     });
   });
 
-  // Find newest file in tmpDir
-  const files = (await fs.readdir(tmpDir)).map((f) => path.join(tmpDir, f));
+  // Find newest file in this session directory only
+  const files = (await fs.readdir(sessionDir)).map((f) => path.join(sessionDir, f));
   const stats = await Promise.all(files.map(async (f) => ({ f, s: await fs.stat(f) })));
   const latest = stats.sort((a, b) => b.s.mtimeMs - a.s.mtimeMs)[0];
   if (!latest) throw new Error('Download failed: no file found');
