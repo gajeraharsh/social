@@ -74,9 +74,22 @@ async function processNextPostForAccount(account, cronCtx) {
 
     // Step 2: Create media container
     const type = post.type === 'video' ? 'video' : 'image';
-    const { ig_user_id, access_token } = account;
+    // Always resolve the account from the post to avoid any mismatch in concurrent flows
+    const postAccount = await Account.findById(post.account);
+    if (!postAccount) {
+      throw new Error('Post linked account not found');
+    }
+    // Optional sanity: warn if the scheduler account differs from post.account
+    if (postAccount._id.toString() !== account._id.toString()) {
+      console.warn('[Scheduler] Mismatch: post.account differs from iterator account', {
+        iteratorAccountId: account._id?.toString(),
+        postAccountId: postAccount._id?.toString(),
+        postId: post._id?.toString(),
+      });
+    }
+    const { ig_user_id, access_token } = postAccount;
     if (!ig_user_id || !access_token) {
-      throw new Error(`Account ${account.username} missing ig_user_id or access_token`);
+      throw new Error(`Account ${postAccount.username || postAccount._id} missing ig_user_id or access_token`);
     }
 
     const container = await createMediaContainer({

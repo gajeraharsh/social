@@ -10,13 +10,6 @@ const axios = require('axios');
  * @param {string} [params.caption]
  */
 async function createMediaContainer({ ig_user_id, access_token, type, sourceUrl, caption = '' }) {
-  console.log({
-    ig_user_id,
-    access_token,
-    type,
-    sourceUrl,
-    caption,
-  })
   const endpoint = `https://graph.instagram.com/v21.0/${ig_user_id}/media`;
   const headers = {
     'Content-Type': 'application/json',
@@ -29,7 +22,6 @@ async function createMediaContainer({ ig_user_id, access_token, type, sourceUrl,
 
   try {
     const { data } = await axios.post(endpoint, payload, { headers, timeout: 30000 });
-    console.log(data, 'data')
     return data; // { id: creation_id }
   } catch (err) {
     const status = err.response?.status;
@@ -69,7 +61,6 @@ async function getContainerStatus({ access_token, creation_id }) {
   const params = { fields: 'status_code' };
   try {
     const { data } = await axios.get(endpoint, { headers, params, timeout: 15000 });
-    console.log(data, 'data')
     // status_code examples: IN_PROGRESS, FINISHED, ERROR
     return data?.status_code || 'UNKNOWN';
   } catch (err) {
